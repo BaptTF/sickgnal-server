@@ -1,0 +1,40 @@
+# Binaries
+sickgnal-server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Database
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# TLS certs (don't commit)
+*.pem
+*.crt
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+# Report
+Rapport Appli Clavardage
