@@ -10,9 +10,10 @@ import (
 
 // buildRelayMessage takes the raw incoming JSON, removes server-only fields
 // (ty, token, rcpt_id) and adds the relay fields (ty, sndr_id).
+// If senderName is non-empty, it also injects sndr_name (used for ConversationOpen).
 // It uses json.RawMessage to preserve the exact structure of all other fields,
 // including any duplicate keys that the Rust serde flatten produces.
-func buildRelayMessage(raw json.RawMessage, newTy string, senderID string) (json.RawMessage, error) {
+func buildRelayMessage(raw json.RawMessage, newTy string, senderID string, senderName string) (json.RawMessage, error) {
 	// Decode the raw message preserving order and duplicates via ordered iteration.
 	// Go's json.Decoder reads tokens in order, so we can reconstruct the JSON
 	// with our modifications while preserving all fields.
@@ -35,6 +36,12 @@ func buildRelayMessage(raw json.RawMessage, newTy string, senderID string) (json
 	out = append(out, `,"sndr_id":`...)
 	senderJSON, _ := json.Marshal(senderID)
 	out = append(out, senderJSON...)
+
+	if senderName != "" {
+		out = append(out, `,"sndr_name":`...)
+		nameJSON, _ := json.Marshal(senderName)
+		out = append(out, nameJSON...)
+	}
 
 	// Skip fields: ty, token, rcpt_id — copy everything else
 	for dec.More() {
@@ -95,6 +102,9 @@ func (h *Handler) HandleSendInitialMessage(ctx *Context, msg *protocol.SendIniti
 		return errResp
 	}
 
+	// Look up sender's username to inject into the relayed message
+	senderName := h.getUsernameByToken(msg.Token)
+
 	// Verify recipient exists
 	var recipientCount int64
 	h.db.Model(&models.User{}).Where("id = ?", msg.RecipientID).Count(&recipientCount)
@@ -103,7 +113,7 @@ func (h *Handler) HandleSendInitialMessage(ctx *Context, msg *protocol.SendIniti
 	}
 
 	// Build relay message preserving all fields exactly as sent by the client
-	payload, err := buildRelayMessage(ctx.RawMessage, protocol.TyConversationOpen, senderID)
+	payload, err := buildRelayMessage(ctx.RawMessage, protocol.TyConversationOpen, senderID, senderName)
 	if err != nil {
 		log.Printf("SendInitialMessage: build relay error: %v", err)
 		return protocol.NewError(protocol.ErrInternalError)
@@ -142,7 +152,7 @@ func (h *Handler) HandleSendMessage(ctx *Context, msg *protocol.SendMessage) int
 	}
 
 	// Build relay message
-	payload, err := buildRelayMessage(ctx.RawMessage, protocol.TyConversationMessage, senderID)
+	payload, err := buildRelayMessage(ctx.RawMessage, protocol.TyConversationMessage, senderID, "")
 	if err != nil {
 		log.Printf("SendMessage: build relay error: %v", err)
 		return protocol.NewError(protocol.ErrInternalError)

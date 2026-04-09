@@ -109,3 +109,13 @@ func (h *Handler) validateToken(token string) (string, interface{}) {
 
 	return user.ID, nil
 }
+
+// getUsernameByToken looks up the username associated with an auth token.
+// Returns an empty string if the token is invalid or the user is not found.
+func (h *Handler) getUsernameByToken(token string) string {
+	var user struct {
+		Username string
+	}
+	h.db.Table("users").Select("username").Where("token = ?", token).First(&user)
+	return user.Username
+}
