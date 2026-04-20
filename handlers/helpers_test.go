@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/BaptTF/sickgnal-server/config"
 	"github.com/BaptTF/sickgnal-server/protocol"
 	"github.com/BaptTF/sickgnal-server/store"
 	"golang.org/x/crypto/curve25519"
@@ -17,7 +18,11 @@ import (
 // setupTestHandler creates a handler with an in-memory SQLite database.
 func setupTestHandler(t *testing.T) *Handler {
 	t.Helper()
-	db, err := store.InitDB(":memory:")
+	cfg := &config.Config{
+		DBDriver: "sqlite",
+		DBPath:   ":memory:",
+	}
+	db, err := store.InitDB(cfg)
 	if err != nil {
 		t.Fatalf("failed to init test db: %v", err)
 	}

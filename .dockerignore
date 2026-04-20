@@ -1,0 +1,16 @@
+.git/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.pem
+*.crt
+*.key
+*.md
+*.test
+*.out
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Rapport Appli Clavardage

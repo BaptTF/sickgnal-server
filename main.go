@@ -11,8 +11,8 @@ import (
 func main() {
 	cfg := config.Parse()
 
-	log.Printf("Initializing database at %s", cfg.DBPath)
-	db, err := store.InitDB(cfg.DBPath)
+	log.Printf("Initializing database (driver=%s)", cfg.DBDriver)
+	db, err := store.InitDB(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
